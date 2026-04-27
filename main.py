@@ -33,6 +33,9 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
+from compat.hf_hub import ensure_hf_hub_compat
+ensure_hf_hub_compat()
+
 from diffusers.models import AutoencoderKL
 from diffusers.optimization import get_scheduler
 from diffusers.schedulers import PNDMScheduler
@@ -46,6 +49,7 @@ from util import (
 )
 from sample.pipeline_trajectory2videogen import Trajectory2VideoGenPipeline
 from evaluate.generate_short_video import generate_sample_videos
+from evaluate.generate_multiview_short_video import generate_multiview_short_videos
 
 # Maybe use fp16 precision training need to set to False
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -250,14 +254,27 @@ def main(args):
     ema.eval()  # EMA model should always be in eval mode
 
     if args.do_evaluate:
-        model.cpu()
-        optimizer_to_cpu(opt)
-        torch.cuda.empty_cache()
-        pred_video_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_videos"
-        pred_latent_video_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_latents"
-        pred_frame_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_frames"
-        logger.info('generating sample videos')
-        generate_sample_videos(args, val_dataloader, device, vae, ema, pred_video_base_dir,pred_frame_base_dir,pred_latent_video_base_dir)
+        if args.dataset in ["libero", "agibot"]:
+            logger.info("generating multi-view short trajectory comparison videos")
+            # Keep model in-place for direct generation on target device.
+            generate_multiview_short_videos(
+                args=args,
+                val_dataset=val_dataset,
+                model=ema,
+                vae=vae,
+                device=device,
+                rank=rank,
+                world_size=dist.get_world_size(),
+            )
+        else:
+            model.cpu()
+            optimizer_to_cpu(opt)
+            torch.cuda.empty_cache()
+            pred_video_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_videos"
+            pred_latent_video_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_latents"
+            pred_frame_base_dir = f"{checkpoint_dir}/{train_steps:07d}/{args.mode}_sample_frames"
+            logger.info('generating sample videos')
+            generate_sample_videos(args, val_dataloader, device, vae, ema, pred_video_base_dir,pred_frame_base_dir,pred_latent_video_base_dir)
         dist.barrier()
         torch.cuda.empty_cache()
         cleanup()

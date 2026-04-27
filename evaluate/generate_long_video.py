@@ -22,6 +22,8 @@ import torchvision.transforms as T
 from tqdm import tqdm
 from einops import rearrange, repeat
 from datetime import datetime
+from compat.hf_hub import ensure_hf_hub_compat
+ensure_hf_hub_compat()
 from diffusers.models import AutoencoderKL
 
 from models import get_models

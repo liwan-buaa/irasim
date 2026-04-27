@@ -1,0 +1,40 @@
+dataset: "libero"
+dataset_dir: "work_dirs/data/libero_irasim"
+sequence_interval: 1
+val_start_frame_interval: 16
+cam_ids: ["head", "hand"]
+accumulate_action: False
+pre_encode: True
+normalize: True
+mode: "val"
+
+anno: "libero_frame_ada"
+debug: False
+do_evaluate: False
+final_frame_ada: False
+
+evaluate_checkpoint: False
+
+# model config
+model: IRASim-XL/2
+num_frames: 16
+video_size: [128, 128]
+learn_sigma: False
+extras: 3
+mask_frame_num: 1
+
+learning_rate: 1e-4
+ckpt_every: 10000
+clip_max_norm: 0.1
+start_clip_iter: 0
+local_batch_size: 1
+local_val_batch_size: 1
+max_train_steps: 300000
+global_seed: 3407
+num_workers: 8
+log_every: 100
+val_every: 10000
+gradient_accumulation_steps: 2
+attention_mode: "math"
+
+resume_from_checkpoint: False

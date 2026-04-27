@@ -21,6 +21,8 @@ from tqdm import tqdm
 from einops import rearrange, repeat
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader
+from compat.hf_hub import ensure_hf_hub_compat
+ensure_hf_hub_compat()
 from diffusers.models import AutoencoderKL,AutoencoderKLTemporalDecoder
 from sample.pipeline_trajectory2videogen import Trajectory2VideoGenPipeline
 from dataset import get_dataset

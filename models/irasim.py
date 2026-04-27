@@ -250,7 +250,7 @@ class IRASim(nn.Module):
                 self.embed_arm_state = torch.nn.Linear(self.state_dim, 4*hidden_size)
                 self.embed_state = torch.nn.Linear(4* hidden_size, hidden_size)
                 self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
-            elif args.dataset == 'rt1': # or args.dataset == 'bridge':
+            elif args.dataset == 'rt1':
                 self.state_dim = 7
                 approx_gelu = lambda: nn.GELU(approximate="tanh")
                 self.embed_state = Mlp(in_features=self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
@@ -260,6 +260,18 @@ class IRASim(nn.Module):
                 approx_gelu = lambda: nn.GELU(approximate="tanh")
                 self.embed_state = Mlp(in_features=self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
                 self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            elif args.dataset == 'libero':
+                self.state_dim = 7
+                approx_gelu = lambda: nn.GELU(approximate="tanh")
+                self.embed_state = Mlp(in_features=self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
+                self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            elif args.dataset == 'agibot':
+                self.state_dim = 16
+                approx_gelu = lambda: nn.GELU(approximate="tanh")
+                self.embed_state = Mlp(in_features=self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
+                self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            else:
+                raise NotImplementedError(f"Unsupported dataset '{args.dataset}' for extras=3")
         elif self.extras == 5:
             if args.dataset == 'languagetable':
                 self.state_dim = 2
@@ -268,11 +280,28 @@ class IRASim(nn.Module):
                 approx_gelu = lambda: nn.GELU(approximate="tanh")
                 self.mlp = Mlp(in_features=(num_frames-1)*hidden_size , out_features=hidden_size, act_layer=approx_gelu, drop=0)
                 self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
-            else:
+            elif args.dataset == 'rt1':
                 self.state_dim = 7
                 approx_gelu = lambda: nn.GELU(approximate="tanh")
                 self.embed_state = Mlp(in_features=(num_frames-1)*self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
                 self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            elif args.dataset == 'bridge':
+                self.state_dim = 7
+                approx_gelu = lambda: nn.GELU(approximate="tanh")
+                self.embed_state = Mlp(in_features=(num_frames-1)*self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
+                self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            elif args.dataset == 'libero':
+                self.state_dim = 7
+                approx_gelu = lambda: nn.GELU(approximate="tanh")
+                self.embed_state = Mlp(in_features=(num_frames-1)*self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
+                self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            elif args.dataset == 'agibot':
+                self.state_dim = 16
+                approx_gelu = lambda: nn.GELU(approximate="tanh")
+                self.embed_state = Mlp(in_features=(num_frames-1)*self.state_dim, hidden_features = hidden_size*4, out_features=hidden_size, act_layer=approx_gelu, drop=0)
+                self.mask_emb_fn = nn.Embedding(num_embeddings=1, embedding_dim=hidden_size)
+            else:
+                raise NotImplementedError(f"Unsupported dataset '{args.dataset}' for extras=5")
 
         num_patches = self.x_embedder.num_patches
         # Will use fixed sin-cos embedding:
@@ -372,10 +401,16 @@ class IRASim(nn.Module):
                 arm_state = actions
                 state_embeddings = self.embed_arm_state(arm_state) 
                 state_embeddings = self.embed_state(state_embeddings)
-            elif self.args.dataset == 'rt1' :# or self.args.dataset == 'bridge':
+            elif self.args.dataset == 'rt1':
                 state_embeddings = self.embed_state(actions)
             elif self.args.dataset == 'bridge':
                 state_embeddings = self.embed_state(actions)
+            elif self.args.dataset == 'libero':
+                state_embeddings = self.embed_state(actions)
+            elif self.args.dataset == 'agibot':
+                state_embeddings = self.embed_state(actions)
+            else:
+                raise NotImplementedError(f"Unsupported dataset '{self.args.dataset}' for extras=3")
 
             mask_emb = self.mask_emb_fn(torch.tensor(0, device=state_embeddings.device))
             batch_front_mask_emb = repeat(mask_emb, 'd -> b 1 d', b = state_embeddings.size()[0])
@@ -395,9 +430,20 @@ class IRASim(nn.Module):
                 state_embeddings = self.embed_arm_state(arm_state) 
                 state_embeddings = self.embed_state(state_embeddings) # b,len,h
                 state_embeddings = self.mlp(state_embeddings.reshape(batches,-1))
-            else:
+            elif self.args.dataset == 'rt1':
                 actions = actions.reshape(actions.size()[0],-1)
                 state_embeddings = self.embed_state(actions)
+            elif self.args.dataset == 'bridge':
+                actions = actions.reshape(actions.size()[0],-1)
+                state_embeddings = self.embed_state(actions)
+            elif self.args.dataset == 'libero':
+                actions = actions.reshape(actions.size()[0],-1)
+                state_embeddings = self.embed_state(actions)
+            elif self.args.dataset == 'agibot':
+                actions = actions.reshape(actions.size()[0],-1)
+                state_embeddings = self.embed_state(actions)
+            else:
+                raise NotImplementedError(f"Unsupported dataset '{self.args.dataset}' for extras=5")
             if self.training:
                 mask = torch.rand(state_embeddings.size(0),device=state_embeddings.device) < 0.1
                 mask_emb = self.mask_emb_fn(torch.tensor(0,device=state_embeddings.device))

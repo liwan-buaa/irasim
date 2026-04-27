@@ -29,6 +29,9 @@ from typing import Union, Iterable
 from collections import OrderedDict
 from datetime import datetime
 from omegaconf import OmegaConf
+from compat.hf_hub import ensure_hf_hub_compat
+
+ensure_hf_hub_compat()
 
 from diffusers.utils import is_bs4_available, is_ftfy_available
 
@@ -360,5 +363,4 @@ def setup_distributed(backend="nccl", port=None):
 
 
     
-
 

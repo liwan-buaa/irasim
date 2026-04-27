@@ -14,6 +14,8 @@
 
 from dataset.dataset_2D import Dataset_2D
 from dataset.dataset_3D import Dataset_3D
+from dataset.dataset_libero import Dataset_Libero
+from dataset.dataset_agibot import Dataset_Agibot
 
 def get_dataset(args):
     if args.dataset == 'languagetable':
@@ -30,5 +32,19 @@ def get_dataset(args):
             return Dataset_3D(args,mode='val'), Dataset_3D(args,mode='val')
         else:
             return Dataset_3D(args,mode='train'), Dataset_3D(args,mode='val')
+    elif args.dataset == 'libero':
+        if args.do_evaluate:
+            return None, Dataset_Libero(args, mode=args.mode)
+        elif args.debug:
+            return Dataset_Libero(args, mode='val'), Dataset_Libero(args, mode='val')
+        else:
+            return Dataset_Libero(args, mode='train'), Dataset_Libero(args, mode='val')
+    elif args.dataset == 'agibot':
+        if args.do_evaluate:
+            return None, Dataset_Agibot(args, mode=args.mode)
+        elif args.debug:
+            return Dataset_Agibot(args, mode='val'), Dataset_Agibot(args, mode='val')
+        else:
+            return Dataset_Agibot(args, mode='train'), Dataset_Agibot(args, mode='val')
     else:
         raise NotImplementedError(args.dataset)
