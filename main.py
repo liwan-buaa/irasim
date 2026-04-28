@@ -191,7 +191,7 @@ def main(args):
 
     assert not (args.evaluate_checkpoint == False and args.do_evaluate)
     if args.evaluate_checkpoint:
-        checkpoint = torch.load(args.evaluate_checkpoint, map_location=lambda storage, loc: storage)
+        checkpoint = torch.load(args.evaluate_checkpoint, map_location=lambda storage, loc: storage,weights_only=False)
         train_steps = int(args.evaluate_checkpoint.split('/')[-1][0:-3])
         if "ema" in checkpoint:  # supports checkpoints from train.py
             logger.info('Using ema ckpt!')
@@ -302,7 +302,7 @@ def main(args):
         path = dirs[-1]
         checkpoint_path = os.path.join(checkpoint_path,path) 
         logger.info(f"Resuming from checkpoint {checkpoint_path}")
-        checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
+        checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage,weights_only=False)
         if "ema" in checkpoint:  # supports checkpoints from train.py
             logger.info('Using ema ckpt!')
             # checkpoint = checkpoint["ema"]
@@ -437,6 +437,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="./configs/train/bridge/frame_ada.yaml")
+    # parser.add_argument("--resume_from_checkpoint", type=str, default="IRASim/results/04/27/libero_frame_ada001")
     args = parser.parse_args()
     args = get_args(args)
     main(args)

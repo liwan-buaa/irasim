@@ -30,7 +30,7 @@ from preprocess_common import (
 def parse_args():
     args = parse_args_common(
         description="Preprocess Libero raw data into IRASim-ready format.",
-        default_raw_root="/data/liwan/IRASim/work_dirs/Datasets/EWM_infer_meta/libero/90",
+        default_raw_root="/ssd/firefly/IRASim/work_dirs/Datasets/EWM_infer_meta/libero/90",
         default_output_root="work_dirs/data/libero_irasim",
         default_dataset_name="libero",
         default_video_size=(128, 128),

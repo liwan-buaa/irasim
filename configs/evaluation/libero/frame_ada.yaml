@@ -17,7 +17,7 @@ evaluate_checkpoint: False
 
 # model config
 model: IRASim-XL/2
-num_frames: 16
+num_frames: 81
 video_size: [128, 128]
 learn_sigma: False
 extras: 3
@@ -40,7 +40,7 @@ attention_mode: "math"
 resume_from_checkpoint: False
 
 # short trajectory eval (multi-view)
-short_eval_pred_len: 81
+short_eval_pred_len: 80
 short_eval_window_stride: 40
 short_eval_fps: 30
 short_eval_camera_order: ["head", "hand"]

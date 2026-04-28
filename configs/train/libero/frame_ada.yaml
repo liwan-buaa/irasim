@@ -17,7 +17,7 @@ evaluate_checkpoint: False
 
 # model config
 model: IRASim-XL/2
-num_frames: 16
+num_frames: 81
 video_size: [128, 128]
 learn_sigma: False
 extras: 3
@@ -37,4 +37,4 @@ val_every: 10000
 gradient_accumulation_steps: 2
 attention_mode: "math"
 
-resume_from_checkpoint: False
+resume_from_checkpoint: "/ssd/firefly/IRASim/IRASim/results/04/27/libero_frame_ada001"

@@ -17,7 +17,7 @@ evaluate_checkpoint: False
 
 # model config
 model: IRASim-XL/2
-num_frames: 16
+num_frames: 58
 video_size: [192, 256]
 learn_sigma: False
 extras: 3

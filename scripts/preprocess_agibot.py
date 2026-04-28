@@ -29,7 +29,7 @@ from preprocess_common import (
 def parse_args():
     return parse_args_common(
         description="Preprocess AgiBot raw data into IRASim-ready format.",
-        default_raw_root="/data/liwan/IRASim/work_dirs/Datasets/EWM_infer_meta/agibot",
+        default_raw_root="/ssd/firefly/IRASim/work_dirs/Datasets/EWM_infer_meta/agibot",
         default_output_root="work_dirs/data/agibot_irasim",
         default_dataset_name="agibot",
         default_video_size=(192, 256),
