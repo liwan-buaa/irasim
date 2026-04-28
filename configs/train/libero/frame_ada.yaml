@@ -37,4 +37,4 @@ val_every: 10000
 gradient_accumulation_steps: 2
 attention_mode: "math"
 
-resume_from_checkpoint: "/ssd/firefly/IRASim/IRASim/results/04/27/libero_frame_ada001"
+resume_from_checkpoint: False

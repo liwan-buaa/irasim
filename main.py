@@ -317,7 +317,19 @@ def main(args):
     if args.evaluate_checkpoint:
         train_steps = int(args.evaluate_checkpoint.split("/")[-1].split('.')[0])
     accumulation_steps = args.gradient_accumulation_steps
-    accumulated_steps = 0  
+    accumulated_steps = 0
+    progress_bar = None
+    if rank == 0:
+        progress_bar = tqdm(
+            total=args.max_train_steps,
+            initial=train_steps,
+            desc="Training",
+            dynamic_ncols=True,
+            bar_format=(
+                "{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} "
+                "[{elapsed}<{remaining}, {rate_fmt}{postfix}]"
+            ),
+        )
     for epoch in range(first_epoch, num_train_epochs):
         train_sampler.set_epoch(epoch)
         for step, video_data in enumerate(train_dataloader):
@@ -361,6 +373,7 @@ def main(args):
                     gradient_norm = clip_grad_norm_(model.module.parameters(), args.clip_max_norm, clip_grad=False)
                 else:
                     gradient_norm = clip_grad_norm_(model.module.parameters(), args.clip_max_norm, clip_grad=True)
+                gradient_norm_value = gradient_norm.item() if torch.is_tensor(gradient_norm) else float(gradient_norm)
                 
 
                 opt.step()
@@ -370,6 +383,14 @@ def main(args):
                 accumulated_steps = 0 
                 train_steps += 1
                 log_steps += 1
+                if progress_bar is not None:
+                    progress_bar.update(1)
+                    progress_bar.set_postfix(
+                        epoch=f"{epoch:04d}",
+                        loss=f"{running_loss / max(log_steps, 1):.4f}",
+                        grad=f"{gradient_norm_value:.4f}",
+                        refresh=False,
+                    )
 
                 if train_steps % args.log_every == 0:
                     # Measure training speed:
@@ -385,7 +406,15 @@ def main(args):
                     
 
 
-                    logger.info(f"(step={train_steps:07d}/epoch={epoch:04d}) Train Loss: {avg_loss:.4f}, Gradient Norm: {gradient_norm:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
+                    logger.info(f"(step={train_steps:07d}/epoch={epoch:04d}) Train Loss: {avg_loss:.4f}, Gradient Norm: {gradient_norm_value:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
+                    if progress_bar is not None:
+                        progress_bar.set_postfix(
+                            epoch=f"{epoch:04d}",
+                            loss=f"{avg_loss:.4f}",
+                            grad=f"{gradient_norm_value:.4f}",
+                            sps=f"{steps_per_sec:.2f}",
+                            refresh=False,
+                        )
                     if rank == 0:
                         wandb.log({'Train Loss': avg_loss}, train_steps)
                         wandb.log({'Gradient Norm': gradient_norm}, train_steps)
@@ -425,7 +454,8 @@ def main(args):
                         # optimizer_to_gpu(opt,device)
                         logger.info(f"Saved checkpoint to {checkpoint_path}")
                     dist.barrier()
-            
+    if progress_bar is not None:
+        progress_bar.close()
 
     model.eval()
 
